@@ -15,34 +15,32 @@ class Cell {
 
 // setup
 
-const width = 1900;
+const width = 800;
 const height = 800;
-const resolution = 2;
-const stateCellsRate = 0.5;
+const resolution = 40;
+const stateCellsRate = 0.15;
 
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 canvas.width = width;
 canvas.height = height;
-fillCanvas('white')
 
 var run = false;
 
 var array = generateFirstCells();
 drawCells(array);
 
-// var pos = getPos(array[5][4])
-// drawCell(array[5][4])
-
-
 function Loop() {
     runNextTurn();
     setTimeout(() => {
-        if (run) {
-            Loop();
-        }
-    }, 100);
+        if (run) Loop();
+    }, 1000);
 }
+
+// function onClick(e) {
+//     console.log(e)
+// }
+
 
 
 
@@ -64,9 +62,21 @@ function generateFirstCells() {
     } return array;
 }
 
+
+function generateDeadCells() {
+    var array = [];
+    for (var i = 0; i < width; i += resolution) {
+        var temparray = []
+        for (var j = 0; j < height; j += resolution) {
+            c = new Cell(i, j, false)
+            temparray.push(c);
+        } array.push(temparray)
+    } return array;
+}
+
 function isBorder(x, y) {
     if (0 == x || 0 == y || (width - resolution) == x || (height - resolution) == y || (width / resolution) - 1 == x || (height / resolution) - 1 == y) return true;
-    else return false;
+    return false;
 }
 
 function updateState(cell) {
@@ -74,11 +84,15 @@ function updateState(cell) {
 }
 
 function updateNextState(cells, x, y) {
-    if (isBorder(x, y)) return;
     var aliveNeighbours = 0;
 
+    if (isBorder(x, y)) {
+        this.nextState = false;
+        return;
+    }
+
     if (cells[x - 1][y - 1].state) aliveNeighbours++;
-    if (cells[x][y].state) aliveNeighbours++;
+    if (cells[x][y - 1].state) aliveNeighbours++;
     if (cells[x + 1][y - 1].state) aliveNeighbours++;
 
     if (cells[x - 1][y].state) aliveNeighbours++;
@@ -109,16 +123,20 @@ function runNextTurn(cells) {
     for (var i = 0; i < width / resolution; ++i) {
         for (var j = 0; j < height / resolution; ++j) {
             updateNextState(array, i, j)
-        }
-    }
-
-    for (var i = 0; i < width / resolution; ++i) {
-        for (var j = 0; j < height / resolution; ++j) {
             if (!isBorder(i, j)) {
                 updateState(array[i][j])
             }
         }
-    } drawCells(array)
+    }
+
+    // for (var i = 0; i < width / resolution; ++i) {
+    //     for (var j = 0; j < height / resolution; ++j) {
+    //         if (!isBorder(i, j)) {
+    //             updateState(array[i][j])
+    //         }
+    //     }
+    // } 
+    drawCells(array)
 }
 
 function Run(bool) {
@@ -132,8 +150,18 @@ function Reset() {
     drawCells(array);
 }
 
+function Empty() {
+    array = generateDeadCells()
+    drawCells(array);
+}
+
 // draw functions
 
+function drawGrid() {
+    // for (i = 0; i < width; i += resolution) {
+    //     for (j = 0; j < )
+    // }
+}
 
 function fillCanvas(color) {
     ctx.fillStyle = color;
@@ -152,18 +180,55 @@ function drawBigPixel(x, y) {
 // draw cells
 
 function drawCell(cell) {
-    if (cell.state) ctx.fillStyle = 'black';
-    else ctx.fillStyle = 'white';
-    ctx.fillStyle = 'red';
+    if (cell.state) ctx.fillStyle = 'white';
+    else ctx.fillStyle = 'black';
     drawBigPixel(cell.x, cell.y)
 }
 
 function drawCells(array) {
     array.map((subarray) => {
         subarray.map((cell) => {
-            if (cell.state) ctx.fillStyle = 'black';
-            else ctx.fillStyle = 'white';
+            if (cell.state) ctx.fillStyle = 'white';
+            else ctx.fillStyle = 'black';
             drawBigPixel(cell.x, cell.y)
         })
     })
 }
+
+
+
+// events
+
+canvas.addEventListener('click', event => {
+    console.log(event)
+
+    let bound = canvas.getBoundingClientRect();
+    let x = event.clientX - bound.left - canvas.clientLeft;
+    let y = event.clientY - bound.top - canvas.clientTop;
+
+    var resx;
+    var resy;
+
+    for (var i = 0; i < width; i += resolution) {
+        if (x > i && x < i + resolution) resx = i / resolution
+    }
+
+    for (var j = 0; j < height; j += resolution) {
+        if (y > j && y < j + resolution) resy = j / resolution
+    }
+
+    if (event.ctrlKey) {
+        array[resx][resy].state = false
+    } else if (event.altKey) {
+
+    } else {
+        array[resx][resy].state = true
+    }
+
+    drawCell(array[resx][resy])
+
+
+    console.log(x, y)
+    console.log(resx, resy)
+
+});
