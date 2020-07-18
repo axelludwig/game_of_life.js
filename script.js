@@ -17,30 +17,27 @@ class Cell {
 
 const width = 800;
 const height = 800;
-const resolution = 40;
-const stateCellsRate = 0.15;
+const resolution = 20;
+const stateCellsRate = 0.3;
 
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 canvas.width = width;
 canvas.height = height;
 
-var run = false;
+var array = [];
+var running = false;
 
-var array = generateFirstCells();
-drawCells(array);
+setup();
 
-function Loop() {
-    runNextTurn();
+
+
+function loop() {
+    runNextTurn(array);
     setTimeout(() => {
-        if (run) Loop();
-    }, 1000);
+        if (running) loop();
+    }, 500);
 }
-
-// function onClick(e) {
-//     console.log(e)
-// }
-
 
 
 
@@ -62,7 +59,6 @@ function generateFirstCells() {
     } return array;
 }
 
-
 function generateDeadCells() {
     var array = [];
     for (var i = 0; i < width; i += resolution) {
@@ -79,11 +75,11 @@ function isBorder(x, y) {
     return false;
 }
 
-function updateState(cell) {
-    cell.state = cell.nextState;
+function updateState(i, j) {
+    array[i][j].state = array[i][j].nextState;
 }
 
-function updateNextState(cells, x, y) {
+function updateNextState(x, y) {
     var aliveNeighbours = 0;
 
     if (isBorder(x, y)) {
@@ -91,24 +87,24 @@ function updateNextState(cells, x, y) {
         return;
     }
 
-    if (cells[x - 1][y - 1].state) aliveNeighbours++;
-    if (cells[x][y - 1].state) aliveNeighbours++;
-    if (cells[x + 1][y - 1].state) aliveNeighbours++;
+    if (array[x - 1][y - 1].state) aliveNeighbours++;
+    if (array[x][y - 1].state) aliveNeighbours++;
+    if (array[x + 1][y - 1].state) aliveNeighbours++;
 
-    if (cells[x - 1][y].state) aliveNeighbours++;
-    if (cells[x + 1][y].state) aliveNeighbours++;
+    if (array[x - 1][y].state) aliveNeighbours++;
+    if (array[x + 1][y].state) aliveNeighbours++;
 
-    if (cells[x - 1][y + 1].state) aliveNeighbours++;
-    if (cells[x][y + 1].state) aliveNeighbours++;
-    if (cells[x + 1][y + 1].state) aliveNeighbours++;
+    if (array[x - 1][y + 1].state) aliveNeighbours++;
+    if (array[x][y + 1].state) aliveNeighbours++;
+    if (array[x + 1][y + 1].state) aliveNeighbours++;
 
     // if alive
-    if (cells[x][y].state) {
-        if (2 == aliveNeighbours || 3 == aliveNeighbours) cells[x][y].nextState = true
-        else cells[x][y].nextState = false
+    if (array[x][y].state) {
+        if (2 == aliveNeighbours || 3 == aliveNeighbours) array[x][y].nextState = true
+        else array[x][y].nextState = false
     } else {
-        if (3 == aliveNeighbours) cells[x][y].nextState = true
-        else cells[x][y].nextState = false
+        if (3 == aliveNeighbours) array[x][y].nextState = true
+        else array[x][y].nextState = false
     }
     // console.log(aliveNeighbours, cells[x][y].state, cells[x][y].nextState)
 }
@@ -119,40 +115,55 @@ function getPos(cell) {
     return [x, y]
 }
 
-function runNextTurn(cells) {
+function runNextTurn(array) {
     for (var i = 0; i < width / resolution; ++i) {
         for (var j = 0; j < height / resolution; ++j) {
-            updateNextState(array, i, j)
+            updateNextState(i, j)
+            // if (!isBorder(i, j)) {
+            //     updateState(i, j)
+            // }
+        }
+    }
+    for (var i = 0; i < width / resolution; ++i) {
+        for (var j = 0; j < height / resolution; ++j) {
             if (!isBorder(i, j)) {
-                updateState(array[i][j])
+                updateState(i, j)
             }
         }
     }
-
-    // for (var i = 0; i < width / resolution; ++i) {
-    //     for (var j = 0; j < height / resolution; ++j) {
-    //         if (!isBorder(i, j)) {
-    //             updateState(array[i][j])
-    //         }
-    //     }
-    // } 
     drawCells(array)
+
 }
 
-function Run(bool) {
-    if (run && bool) return;
-    run = bool
-    if (bool) Loop();
-}
 
-function Reset() {
+function setup() {
     array = generateFirstCells();
     drawCells(array);
 }
 
-function Empty() {
+function run(bool) {
+    if (running && bool) return;
+    running = bool
+    if (bool) loop();
+}
+
+function reset() {
+    array = generateFirstCells();
+    drawCells(array);
+}
+
+function empty() {
     array = generateDeadCells()
     drawCells(array);
+}
+
+function test() {
+    // drawGrid();
+    for (var i = 0; i < width / resolution; ++i) {
+        for (var j = 0; j < height / resolution; ++j) {
+            updateNextState(i, j)
+        }
+    }
 }
 
 // draw functions
@@ -200,35 +211,36 @@ function drawCells(array) {
 // events
 
 canvas.addEventListener('click', event => {
-    console.log(event)
-
     let bound = canvas.getBoundingClientRect();
     let x = event.clientX - bound.left - canvas.clientLeft;
     let y = event.clientY - bound.top - canvas.clientTop;
 
-    var resx;
-    var resy;
+    for (var i = 0; i < width; i += resolution) if (x > i && x < i + resolution) x = i / resolution
+    for (var j = 0; j < height; j += resolution) if (y > j && y < j + resolution) y = j / resolution
 
-    for (var i = 0; i < width; i += resolution) {
-        if (x > i && x < i + resolution) resx = i / resolution
-    }
+    if (event.ctrlKey) array[x][y].state = false
+    else if (event.altKey) {
+        var aliveNeighbours = 0;
 
-    for (var j = 0; j < height; j += resolution) {
-        if (y > j && y < j + resolution) resy = j / resolution
-    }
+        if (isBorder(x, y)) {
+            this.nextState = false;
+            return;
+        }
 
-    if (event.ctrlKey) {
-        array[resx][resy].state = false
-    } else if (event.altKey) {
+        if (array[x - 1][y - 1].state) aliveNeighbours++;
+        if (array[x][y - 1].state) aliveNeighbours++;
+        if (array[x + 1][y - 1].state) aliveNeighbours++;
 
-    } else {
-        array[resx][resy].state = true
-    }
+        if (array[x - 1][y].state) aliveNeighbours++;
+        if (array[x + 1][y].state) aliveNeighbours++;
 
-    drawCell(array[resx][resy])
+        if (array[x - 1][y + 1].state) aliveNeighbours++;
+        if (array[x][y + 1].state) aliveNeighbours++;
+        if (array[x + 1][y + 1].state) aliveNeighbours++;
 
+        console.log(aliveNeighbours);
 
-    console.log(x, y)
-    console.log(resx, resy)
-
+        console.log(array[x][y])
+    } else array[x][y].state = true
+    drawCell(array[x][y])
 });
