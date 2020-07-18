@@ -15,10 +15,10 @@ class Cell {
 
 // setup
 
-const width = 800;
+const width = 1900;
 const height = 800;
-const resolution = 40;
-const stateCellsRate = 0.4;
+const resolution = 2;
+const stateCellsRate = 0.5;
 
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
@@ -122,6 +122,7 @@ function runNextTurn(cells) {
 }
 
 function Run(bool) {
+    if (run && bool) return;
     run = bool
     if (bool) Loop();
 }
