@@ -1,0 +1,22 @@
+{
+  "name": "game_of_life",
+  "version": "1.0.0",
+  "description": "simple game of life javascript implementation",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/axelludwig/game_of_life.js.git"
+  },
+  "author": "linkenparis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/axelludwig/game_of_life.js/issues"
+  },
+  "homepage": "https://github.com/axelludwig/game_of_life.js#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
