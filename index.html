@@ -44,6 +44,7 @@
         var height = 940;
         var resolution = 10;
         var stateCellsRate = 0.3;
+        var updateTime = 500;
 
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
@@ -59,7 +60,7 @@
             runNextTurn(array);
             setTimeout(() => {
                 if (running) loop();
-            }, 500);
+            }, updateTime);
         }
 
 
